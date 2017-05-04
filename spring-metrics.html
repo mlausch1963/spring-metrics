@@ -581,7 +581,7 @@ time series for export to a variety of time series databases and monitoring back
 
     <span class="directive">public</span> MyController(MeterRegistry registry) {
         <span class="comment">// constructs a gauge to monitor the size of the population</span>
-        registry.mapSize(<span class="string"><span class="delimiter">&quot;</span><span class="content">population</span><span class="delimiter">&quot;</span></span>, people);
+        registry.collectionSize(<span class="string"><span class="delimiter">&quot;</span><span class="content">population</span><span class="delimiter">&quot;</span></span>, people);
     }
 
     <span class="annotation">@GetMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/api/people</span><span class="delimiter">&quot;</span></span>)
@@ -646,51 +646,6 @@ metrics may recall that in Dropwizard a meter is a specialization of a counter t
 <p>A registry creates and manages your application&#8217;s set of meters. Exporters use the meter registry to iterate
 over the set of meters instrumenting your application, and then further iterate over each meter&#8217;s metrics, generally
 resulting in a time series in the metrics backend for each combination of metrics and dimensions.</p>
-</div>
-<div class="paragraph">
-<p>Two meter registry implementations are provided out-of-the-box: <code>SpectatorMeterRegistry</code> and <code>PrometheusMeterRegistry</code>. Add one
-or the other to your application context:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
-<span class="directive">public</span> MeterRegistry meterRegistry() { <span class="keyword">return</span> <span class="keyword">new</span> PrometheusMeterRegistry(); }</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then, inject the <code>MeterRegistry</code> elsewhere to create meters that you can use to instrument your app:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@RestController</span>
-<span class="directive">public</span> <span class="type">class</span> <span class="class">MyController</span> {
-    <span class="predefined-type">List</span>&lt;Person&gt; people = <span class="keyword">new</span> <span class="predefined-type">ArrayList</span>&lt;Person&gt;();
-    Counter steveCounter;
-    <span class="predefined-type">Timer</span> findPersonTimer;
-
-    <span class="directive">public</span> MyController(MeterRegistry registry) {
-        <span class="comment">// registers a gauge to observe the size of the population</span>
-        registry.collectionSize(<span class="string"><span class="delimiter">&quot;</span><span class="content">population</span><span class="delimiter">&quot;</span></span>, people);
-
-        <span class="comment">// register a counter of questionable usefulness</span>
-        steveCounter = registry.counter(<span class="string"><span class="delimiter">&quot;</span><span class="content">find-steve</span><span class="delimiter">&quot;</span></span>, <span class="comment">/* optional tags here */</span>);
-
-        <span class="comment">// register a timer -- though for request timing it is easier to use @Timed</span>
-        findPersonTimer = registry.timer(<span class="string"><span class="delimiter">&quot;</span><span class="content">http-requests</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">method</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">GET</span><span class="delimiter">&quot;</span></span>);
-    }
-
-    <span class="annotation">@GetMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/api/person</span><span class="delimiter">&quot;</span></span>)
-    <span class="directive">public</span> Person findPerson(<span class="annotation">@RequestParam</span> <span class="predefined-type">String</span> q) {
-        <span class="keyword">return</span> findPersonTimer.record(() -&gt; { <span class="comment">// use the timer!</span>
-            <span class="keyword">if</span>(q.toLowerCase().contains(<span class="string"><span class="delimiter">&quot;</span><span class="content">steve</span><span class="delimiter">&quot;</span></span>)) {
-                steveCounter.increment(); <span class="comment">// use the counter</span>
-            }
-
-            <span class="keyword">return</span> people.stream().filter(p -&gt; <span class="comment">/* etc */</span>).findAny().orElse(<span class="predefined-constant">null</span>);
-        });
-    }
-}</code></pre>
-</div>
 </div>
 </div>
 <div class="sect2">
