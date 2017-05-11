@@ -1018,6 +1018,9 @@ currently active, maximum allowed, and minimum allowed connections
 in the pool. Each of these gauges has a name which is prefixed by
 the provided name ("data_source" in this example).</p>
 </div>
+<div class="paragraph">
+<p>The original data source instance is unchanged by instrumentation.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="meter-binders">Meter Binders</h3>
@@ -1148,7 +1151,8 @@ controllers or request methods via the <code>extraTags</code> attribute on <code
 metrics.setDefaultTagName(<span class="string"><span class="delimiter">&quot;</span><span class="content">my_metric_name</span><span class="delimiter">&quot;</span></span>); <span class="comment">// OPTIONAL, default is http_server_requests</span>
 
 RouterFunction&lt;ServerResponse&gt; routes = RouterFunctions
-    .route(GET(<span class="string"><span class="delimiter">&quot;</span><span class="content">/person/{id}</span><span class="delimiter">&quot;</span></span>).and(accept(APPLICATION_JSON)), request -&gt; ServerResponse.ok().build())
+    .route(GET(<span class="string"><span class="delimiter">&quot;</span><span class="content">/person/{id}</span><span class="delimiter">&quot;</span></span>).and(accept(APPLICATION_JSON)),
+        request -&gt; ServerResponse.ok().build())
     .filter(metrics.timer());</code></pre>
 </div>
 </div>
