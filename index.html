@@ -539,7 +539,7 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 <li><a href="#prometheus">Prometheus</a>
 <ul class="sectlevel2">
-<li><a href="#pulling-metrics-with-scraping">Pulling metrics with scraping</a></li>
+<li><a href="#quickstart-for-prometheus-based-monitoring">Quickstart for Prometheus-based monitoring</a></li>
 </ul>
 </li>
 <li><a href="#dropwizard">Dropwizard</a>
@@ -554,9 +554,9 @@ table.CodeRay td.code>pre{padding:0}
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><span class="image"><a class="image" href="https://travis-ci.org/spring-projects/spring-metrics"><img src="https://travis-ci.org/spring-projects/spring-metrics.svg?branch=master" alt="spring metrics"></a></span>
-<span class="image"><a class="image" href="https://gitter.im/spring-projects/spring-metrics?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join%20Chat"></a></span>
-<span class="image"><a class="image" href="http://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License Apache%202.0 blue"></a></span></p>
+<p><span class="image"><a class="image" href="https://travis-ci.org/spring-projects/spring-metrics"><img src="https://travis-ci.org/spring-projects/spring-metrics.svg?branch=master" alt="Build Status"></a></span>
+<span class="image"><a class="image" href="https://gitter.im/spring-projects/spring-metrics?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></span>
+<span class="image"><a class="image" href="http://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"></a></span></p>
 </div>
 <div class="paragraph">
 <p>This project provides facilities for instrumenting apps with metrics collection
@@ -1034,8 +1034,8 @@ of the application or its container.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
-JvmMemoryMeterBinder memoryBinder() {
-    <span class="keyword">return</span> <span class="keyword">new</span> JvmMemoryMeterBinder();
+JvmMemoryMetrics memoryBinder() {
+    <span class="keyword">return</span> <span class="keyword">new</span> JvmMemoryMetrics();
 }</code></pre>
 </div>
 </div>
@@ -1048,19 +1048,19 @@ bind metrics to a single <code>MeterRegistry</code>:</p>
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
 MeterRegistry prometheusRegistry() {
     <span class="keyword">return</span> <span class="keyword">new</span> PrometheusMeterRegistry()
-        .bind(<span class="keyword">new</span> JvmMemoryMeterBinder());
+        .bind(<span class="keyword">new</span> JvmMemoryMetrics());
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Binders are enabled by default via Spring Boot auto configuration if they source data for an alert
 that is recommended for a production ready app. The idea is to encourage the capture of metrics
-that are the most actionable. The following binders are auto-configured:</p>
+that are the most actionable. The following binders are auto-configured (TODO WILL be autoconfigured, but not yet):</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>JvmGcMeterBinder</code> - Records information about GC events and their causes, split by generation.
+<p><code>JvmGcMetrics</code> - Records information about GC events and their causes, split by generation.
 We recommend setting up alerts for production ready apps for (1) if <code>jvm_gc_pause</code> exceeds some fixed value (500 ms
 is a good general purpose value) and (2) if <code>jvm_gc_live_data_size</code> exceeds 70% of the heap.</p>
 </li>
@@ -1166,22 +1166,49 @@ RouterFunction&lt;ServerResponse&gt; routes = RouterFunctions
 <h2 id="prometheus">Prometheus</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="pulling-metrics-with-scraping">Pulling metrics with scraping</h3>
+<h3 id="quickstart-for-prometheus-based-monitoring">Quickstart for Prometheus-based monitoring</h3>
 <div class="paragraph">
-<p>Adding <code>@EnablePrometheusScraping</code> to your Spring Boot application enables
-a Spring Boot Actuator endpoint at <code>/prometheus</code> that presents a Prometheus
-scrape with the appropriate format for a Prometheus scrape.</p>
-</div>
-<div class="paragraph">
-<p>Here is an example <code>scrape_config</code> to add to prometheus.yml:</p>
+<p>You will need the following dependencies:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="yml"><span class="key">scrape_configs</span>:
-  - <span class="string"><span class="content">job_name: 'spring'</span></span>
-    <span class="key">metrics_path</span>: <span class="string"><span class="content">'/prometheus'</span></span>
-    <span class="key">static_configs</span>:
-      - <span class="string"><span class="content">targets: ['HOST:PORT']</span></span></code></pre>
+<pre class="CodeRay highlight"><code data-lang="groovy">compile <span class="string"><span class="delimiter">'</span><span class="content">org.springframework.metrics:spring-metrics:latest.release</span><span class="delimiter">'</span></span>
+compile <span class="string"><span class="delimiter">'</span><span class="content">io.prometheus:simpleclient:latest.release</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Register the Prometheus registry and enable Prometheus scraping:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@SpringBootApplication</span>
+<span class="annotation">@EnablePrometheusScraping</span>
+<span class="annotation">@Import</span>(WebMetricsConfiguration.class) <span class="comment">// to enable automatic timing of Web MVC endpoints</span>
+<span class="directive">public</span> <span class="type">class</span> <span class="class">MyApp</span> {
+    <span class="annotation">@Bean</span>
+    <span class="directive">public</span> MeterRegistry prometheusRegistry() {
+        <span class="keyword">return</span> <span class="keyword">new</span> PrometheusRegistry()
+            .bind(<span class="keyword">new</span> JvmGcMetrics())
+            .bind(<span class="keyword">new</span> ProcessorMetrics());
+    }
+}
+
+Then inject <span class="error">`</span>MeterRegistry<span class="error">`</span> wherever you need to create a timer, gauge, counter, or summary.
+
+=== Pulling metrics with scraping
+
+Adding <span class="error">`</span><span class="annotation">@EnablePrometheusScraping</span><span class="error">`</span> to your <span class="predefined-type">Spring</span> Boot application enables
+a <span class="predefined-type">Spring</span> Boot Actuator endpoint at <span class="error">`</span>/prometheus<span class="error">`</span> that presents a Prometheus
+scrape with the appropriate format <span class="keyword">for</span> a Prometheus scrape.
+
+Here is an example <span class="error">`</span>scrape_config<span class="error">`</span> to add to prometheus.yml:
+
+<span class="error">`</span><span class="error">`</span><span class="error">`</span>yml
+scrape_configs:
+  - job_name: <span class="string"><span class="delimiter">'</span><span class="content">spring</span><span class="delimiter">'</span></span>
+    metrics_path: <span class="string"><span class="delimiter">'</span><span class="content">/prometheus</span><span class="delimiter">'</span></span>
+    static_configs:
+      - targets: [<span class="string"><span class="delimiter">'</span><span class="content">HOST:PORT</span><span class="delimiter">'</span></span>]</code></pre>
 </div>
 </div>
 </div>
