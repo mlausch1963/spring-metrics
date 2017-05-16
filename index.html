@@ -515,6 +515,7 @@ table.CodeRay td.code>pre{padding:0}
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
+<li><a href="#installing">Installing</a></li>
 <li><a href="#instrumentation">Instrumentation</a>
 <ul class="sectlevel2">
 <li><a href="#meter">Meter</a></li>
@@ -565,6 +566,34 @@ table.CodeRay td.code>pre{padding:0}
 <div class="paragraph">
 <p>This project provides facilities for instrumenting apps with metrics collection
 and interacting with popular third-party application monitoring systems.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installing">Installing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Pre-release artifacts are being published frequently, but are NOT intended for production use.</p>
+</div>
+<div class="paragraph">
+<p>In Gradle:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">compile <span class="string"><span class="delimiter">'</span><span class="content">org.springframework.metrics:spring-metrics:latest.release</span><span class="delimiter">'</span></span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in Maven:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+  <span class="tag">&lt;groupId&gt;</span>org.springframework.metrics<span class="tag">&lt;/groupId&gt;</span>
+  <span class="tag">&lt;artifactId&gt;</span>spring-metrics<span class="tag">&lt;/artifactId&gt;</span>
+  <span class="tag">&lt;version&gt;</span>${metrics.version}<span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -679,10 +708,10 @@ or the other to your application context:</p>
         registry.collectionSize(<span class="string"><span class="delimiter">&quot;</span><span class="content">population</span><span class="delimiter">&quot;</span></span>, people);
 
         <span class="comment">// register a counter of questionable usefulness</span>
-        steveCounter = registry.counter(<span class="string"><span class="delimiter">&quot;</span><span class="content">find-steve</span><span class="delimiter">&quot;</span></span>, <span class="comment">/* optional tags here */</span>);
+        steveCounter = registry.counter(<span class="string"><span class="delimiter">&quot;</span><span class="content">find_steve</span><span class="delimiter">&quot;</span></span>, <span class="comment">/* optional tags here */</span>);
 
         <span class="comment">// register a timer -- though for request timing it is easier to use @Timed</span>
-        findPersonTimer = registry.timer(<span class="string"><span class="delimiter">&quot;</span><span class="content">http-requests</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">method</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">GET</span><span class="delimiter">&quot;</span></span>);
+        findPersonTimer = registry.timer(<span class="string"><span class="delimiter">&quot;</span><span class="content">http_requests</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">method</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">GET</span><span class="delimiter">&quot;</span></span>);
     }
 
     <span class="annotation">@GetMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/api/person</span><span class="delimiter">&quot;</span></span>)
@@ -738,7 +767,8 @@ analysis on the contribution of each functional area to the number of threads co
 <p>We do not offer an opinion about naming styles. Spectator promotes camel case and Prometheus promotes '_' separation
 (along with other <a href="https://prometheus.io/docs/practices/naming/#metric-names">recommendations</a>),
 but they are both are admittedly arbitrary. Consistency is key. We recommend following the convention most commonly used by your
-organization or your chosen metrics backend.</p>
+organization or your chosen metrics backend. It is recommended to stay away from '-' separated names, as some metrics
+backends interpret '-' as metric subtraction.</p>
 </div>
 </td>
 </tr>
@@ -1067,6 +1097,9 @@ that are the most actionable. The following binders are auto-configured (TODO WI
 <p><code>JvmGcMetrics</code> - Records information about GC events and their causes, split by generation.
 We recommend setting up alerts for production ready apps for (1) if <code>jvm_gc_pause</code> exceeds some fixed value (500 ms
 is a good general purpose value) and (2) if <code>jvm_gc_live_data_size</code> exceeds 70% of the heap.</p>
+</li>
+<li>
+<p><code>LogbackMetrics</code> - Records counts for log event at various levels. Auto-configured in the presence of <code>logback-core</code>.</p>
 </li>
 </ol>
 </div>
