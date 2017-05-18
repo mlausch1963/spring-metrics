@@ -536,6 +536,7 @@ table.CodeRay td.code>pre{padding:0}
 <ul class="sectlevel2">
 <li><a href="#web-mvc-and-annotation-based-webflux">Web MVC and Annotation-Based WebFlux</a></li>
 <li><a href="#webflux-functional">Webflux Functional</a></li>
+<li><a href="#code-resttemplate-code-timing"><code>RestTemplate</code> Timing</a></li>
 </ul>
 </li>
 <li><a href="#prometheus">Prometheus</a>
@@ -1116,8 +1117,8 @@ to Spring MVC and Spring WebFlux server endpoints.</p>
 <div class="sect2">
 <h3 id="web-mvc-and-annotation-based-webflux">Web MVC and Annotation-Based WebFlux</h3>
 <div class="paragraph">
-<p>Spring Boot 2.+ autoconfigures these interceptors. If you are using Spring Boot 1.x, simply add <code>@Import(WebMetricsConfiguration.class)</code>
-to your <code>@SpringBootApplication</code> class.</p>
+<p>Adding <code>@EnableMetrics</code> to your <code>@SpringBootApplication</code> class autoconfigures these
+interceptors.</p>
 </div>
 <div class="paragraph">
 <p>The interceptors need to be enabled for every request handler or controller that you want
@@ -1145,7 +1146,7 @@ to time. Add <code>@Timed</code> to:</p>
 </div>
 <div class="paragraph">
 <p>The <code>Timer</code> is registered with a name of <code>http_server_requests</code> by default. This can be changed by setting
-<code>spring.metrics.web.name</code>.</p>
+<code>spring.metrics.web.server_requests.name</code>.</p>
 </div>
 <div class="paragraph">
 <p>The <code>Timer</code> contains a set of dimensions for every request, governed by the primary bean <code>WebMetricsTagProvider</code> registered
@@ -1197,6 +1198,18 @@ RouterFunction&lt;ServerResponse&gt; routes = RouterFunctions
 <p>The filter applies to all routes defined by this router function.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="code-resttemplate-code-timing"><code>RestTemplate</code> Timing</h3>
+<div class="paragraph">
+<p>Adding <code>@EnableMetrics</code> to your <code>@SpringBootApplication</code> class autoconfigures a <code>BeanPostProcessor</code> for <code>RestTemplate</code>,
+so every instance you create via the application context will be instrumented.</p>
+</div>
+<div class="paragraph">
+<p>A timer is recorded for each invocation that includes tags for URI (before parameter substitution), host, and status.
+The name of this timer is <code>http_client_requests</code>, and can be changed via the <code>spring.metrics.web.client_requests.name</code>
+property.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1219,8 +1232,8 @@ compile <span class="string"><span class="delimiter">'</span><span class="conten
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@SpringBootApplication</span>
+<span class="annotation">@EnableMetrics</span>
 <span class="annotation">@EnablePrometheusScraping</span>
-<span class="annotation">@Import</span>(WebMetricsConfiguration.class) <span class="comment">// to enable automatic timing of Web MVC endpoints</span>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">MyApp</span> {
     <span class="annotation">@Bean</span>
     <span class="directive">public</span> MeterRegistry prometheusRegistry() {
