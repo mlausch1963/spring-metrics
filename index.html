@@ -532,13 +532,14 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#meter-binders">Meter Binders</a></li>
 </ul>
 </li>
-<li><a href="#spring-web-mvc-and-spring-webflux">Spring Web MVC and Spring WebFlux</a>
+<li><a href="#server-side-http-instrumentation">Server-side HTTP Instrumentation</a>
 <ul class="sectlevel2">
 <li><a href="#web-mvc-and-annotation-based-webflux">Web MVC and Annotation-Based WebFlux</a></li>
 <li><a href="#webflux-functional">Webflux Functional</a></li>
-<li><a href="#code-resttemplate-code-timing"><code>RestTemplate</code> Timing</a></li>
 </ul>
 </li>
+<li><a href="#client-side-http-instrumentation">Client-side HTTP Instrumentation</a></li>
+<li><a href="#scheduling-instrumentation">Scheduling Instrumentation</a></li>
 <li><a href="#prometheus">Prometheus</a>
 <ul class="sectlevel2">
 <li><a href="#quickstart-for-prometheus-based-monitoring">Quickstart for Prometheus-based monitoring</a></li>
@@ -555,13 +556,9 @@ table.CodeRay td.code>pre{padding:0}
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="imageblock">
-<div class="content">
-<a class="image" href="https://circleci.com/gh/spring-cloud/spring-metrics"><img src="https://circleci.com/gh/spring-projects/spring-metrics.svg?style=svg" alt="Build Status"></a>
-</div>
-</div>
 <div class="paragraph">
-<p><span class="image"><a class="image" href="https://gitter.im/spring-projects/spring-metrics?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></span>
+<p><span class="image"><a class="image" href="https://circleci.com/gh/spring-cloud/spring-metrics"><img src="https://circleci.com/gh/spring-projects/spring-metrics.svg?style=svg" alt="Build Status"></a></span>
+<span class="image"><a class="image" href="https://gitter.im/spring-projects/spring-metrics?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Gitter"></a></span>
 <span class="image"><a class="image" href="http://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache License"></a></span></p>
 </div>
 <div class="paragraph">
@@ -908,6 +905,20 @@ services are having problems it can take much longer. A long duration timer can
 be used to track the overall time for refreshing the metadata.</p>
 </div>
 <div class="paragraph">
+<p>In a Spring application, it is common for such long running processes to be implemented with <code>@Scheduled</code>.
+<code>spring-metrics</code> provides a special <code>@Timed</code> annotation for instrumenting these processes with a long
+task timer:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Timed</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">aws_scrape</span><span class="delimiter">&quot;</span></span>, longTask = <span class="predefined-constant">true</span>)
+<span class="annotation">@Scheduled</span>(fixedDelay = <span class="integer">360000</span>)
+<span class="type">void</span> scrapeResources() {
+    <span class="comment">// find instances, volumes, auto-scaling groups, etc...</span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>The charts below show max latency for the refresh using a regular timer and a
 long task timer. Regular timer, note that the y-axis is using a logarithmic scale:</p>
 </div>
@@ -1108,7 +1119,7 @@ is a good general purpose value) and (2) if <code>jvm_gc_live_data_size</code> e
 </div>
 </div>
 <div class="sect1">
-<h2 id="spring-web-mvc-and-spring-webflux">Spring Web MVC and Spring WebFlux</h2>
+<h2 id="server-side-http-instrumentation">Server-side HTTP Instrumentation</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><code>spring-metrics</code> contains built-in instrumentation for timings of requests made
@@ -1132,6 +1143,10 @@ to time. Add <code>@Timed</code> to:</p>
 <li>
 <p>A method to enable for an individual endpoint. This is not necessary if you have it on the class.</p>
 </li>
+<li>
+<p>A method with <code>longTask = true</code> to enable a long task timer for the method. Long task timers require a
+separate metric name, and can be stacked with a short task timer.</p>
+</li>
 </ol>
 </div>
 <div class="listingblock">
@@ -1141,6 +1156,7 @@ to time. Add <code>@Timed</code> to:</p>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">MyController</span> {
     <span class="annotation">@GetMapping</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">/api/people</span><span class="delimiter">&quot;</span></span>)
     <span class="annotation">@Timed</span> <span class="comment">// (2)</span>
+    <span class="annotation">@Timed</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">all_people</span><span class="delimiter">&quot;</span></span>, longTask = <span class="predefined-constant">true</span>) <span class="comment">// (3)</span>
     <span class="directive">public</span> <span class="predefined-type">List</span>&lt;Person&gt; listPeople() { ... }</code></pre>
 </div>
 </div>
@@ -1198,16 +1214,42 @@ RouterFunction&lt;ServerResponse&gt; routes = RouterFunctions
 <p>The filter applies to all routes defined by this router function.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="code-resttemplate-code-timing"><code>RestTemplate</code> Timing</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="client-side-http-instrumentation">Client-side HTTP Instrumentation</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Adding <code>@EnableMetrics</code> to your <code>@SpringBootApplication</code> class autoconfigures a <code>BeanPostProcessor</code> for <code>RestTemplate</code>,
+<p>Adding <code>@EnableMetrics</code> to your <code>@SpringBootApplication</code> class configures a <code>BeanPostProcessor</code> for <code>RestTemplate</code>,
 so every instance you create via the application context will be instrumented.</p>
 </div>
 <div class="paragraph">
 <p>A timer is recorded for each invocation that includes tags for URI (before parameter substitution), host, and status.
 The name of this timer is <code>http_client_requests</code>, and can be changed via the <code>spring.metrics.web.client_requests.name</code>
 property.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="scheduling-instrumentation">Scheduling Instrumentation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Adding <code>@EnableMetrics</code> to your <code>@SpringBootApplication</code> class plus enabling AOP configures AOP advice that times
+<code>@Scheduled</code> methods. For a method to be timed, it must be marked as <code>@Timed("my_metric_name")</code> with a name.</p>
+</div>
+<div class="paragraph">
+<p>Depending on the duration of the scheduled task, you may want to choose to time the method with a <code>LongTaskTimer</code>,
+a <code>Timer</code>, or both. Below is an example of measuring both long task and regular timings to a scheduled task:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Timed</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">beep</span><span class="delimiter">&quot;</span></span>)
+<span class="annotation">@Timed</span>(value = <span class="string"><span class="delimiter">&quot;</span><span class="content">long_beep</span><span class="delimiter">&quot;</span></span>, longTask = <span class="predefined-constant">true</span>)
+<span class="annotation">@Scheduled</span>(fixedRate = <span class="integer">1000</span>)
+<span class="type">void</span> longBeep() {
+    <span class="comment">// calculate the meaning of life, then beep...</span>
+    <span class="predefined-type">System</span>.out.println(<span class="string"><span class="delimiter">&quot;</span><span class="content">beep</span><span class="delimiter">&quot;</span></span>);
+}</code></pre>
 </div>
 </div>
 </div>
