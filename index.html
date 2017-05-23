@@ -527,9 +527,9 @@ table.CodeRay td.code>pre{padding:0}
 <li><a href="#long-task-timers">Long Task Timers</a></li>
 <li><a href="#gauges">Gauges</a></li>
 <li><a href="#distribution-summary">Distribution Summary</a></li>
-<li><a href="#caches">Caches</a></li>
-<li><a href="#data-sources">Data Sources</a></li>
-<li><a href="#meter-binders">Meter Binders</a></li>
+<li><a href="#cache-monitoring">Cache Monitoring</a></li>
+<li><a href="#data-source-monitoring">Data Source Monitoring</a></li>
+<li><a href="#executor-and-executorservice-monitoring">Executor and ExecutorService Monitoring</a></li>
 </ul>
 </li>
 <li><a href="#server-side-http-instrumentation">Server-side HTTP Instrumentation</a>
@@ -1001,7 +1001,7 @@ sizes of requests hitting a server.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="caches">Caches</h3>
+<h3 id="cache-monitoring">Cache Monitoring</h3>
 <div class="paragraph">
 <p>Guava caches can be instrumented with the registry, but it is important that you call <code>recordStats()</code> on
 the <code>CacheBuilder</code>, as it is not possible to turn this on after the <code>Cache</code> is constructed.</p>
@@ -1031,7 +1031,7 @@ corresponding to the stats recorded in <code>CacheStats</code>.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="data-sources">Data Sources</h3>
+<h3 id="data-source-monitoring">Data Source Monitoring</h3>
 <div class="paragraph">
 <p>Data sources can be instrumented with the registry. This requires
 the <code>DataSourcePoolMetadataProvider</code> automatically configured by Spring
@@ -1069,17 +1069,36 @@ the provided name ("data_source" in this example).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="meter-binders">Meter Binders</h3>
+<h3 id="executor-and-executorservice-monitoring">Executor and ExecutorService Monitoring</h3>
 <div class="paragraph">
-<p>Meter binders register one or more metrics to provide information about the state of some aspect
-of the application or its container.</p>
-</div>
-<div class="paragraph">
-<p>To enable the collection of the set of metrics encapsulated in a binder, define the binder as a bean:</p>
+<p><code>Executor</code> and <code>ExecutorService</code> instances can be instrumented with the registry.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Configuration</span>
+<span class="type">class</span> <span class="class">MyConfiguration</span> {
+    <span class="annotation">@Bean</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">worker_pool</span><span class="delimiter">&quot;</span></span>)
+    <span class="predefined-type">ExecutorService</span> workerPool(MeterRegistry registry) {
+        <span class="keyword">return</span> registry.monitor(<span class="predefined-type">Executors</span>.newFixedThreadPool(<span class="integer">8</span>));
+    }
+}
+
+<span class="error">`</span><span class="predefined-type">ExecutorService</span><span class="error">`</span> instrumentation results in a gauge that tracks
+the number of queued tasks that have not been started yet plus a timer
+that records the execution time of tasks (plus a count of such tasks, since
+<span class="error">`</span><span class="predefined-type">Timer</span><span class="error">`</span>s always track both count and totalTime statistics).
+
+<span class="error">`</span><span class="predefined-type">Executor</span><span class="error">`</span> instrumentation just records the execution time.
+
+=== Meter Binders
+
+Meter binders register one or more metrics to provide information about the state of some aspect
+of the application or its container.
+
+To enable the collection of the set of metrics encapsulated in a binder, define the binder as a bean:
+
+<span class="error">`</span><span class="error">`</span><span class="error">`</span>java
+<span class="annotation">@Bean</span>
 JvmMemoryMetrics memoryBinder() {
     <span class="keyword">return</span> <span class="keyword">new</span> JvmMemoryMetrics();
 }</code></pre>
@@ -1099,9 +1118,19 @@ MeterRegistry prometheusRegistry() {
 </div>
 </div>
 <div class="paragraph">
+<p>Any meter binder that is registered separately as a <code>@Bean</code> will be injected into <code>MeterRegistry</code> implementations
+provided by <code>spring-metrics</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@Bean</span>
+JvmMemoryMetrics memoryMetrics() { <span class="keyword">return</span> <span class="keyword">new</span> JvmMemoryMetrics(); }</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Binders are enabled by default via Spring Boot auto configuration if they source data for an alert
 that is recommended for a production ready app. The idea is to encourage the capture of metrics
-that are the most actionable. The following binders are auto-configured (TODO WILL be autoconfigured, but not yet):</p>
+that are the most actionable. The following binders are auto-configured:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1269,29 +1298,24 @@ compile <span class="string"><span class="delimiter">'</span><span class="conten
 </div>
 </div>
 <div class="paragraph">
-<p>Register the Prometheus registry and enable Prometheus scraping:</p>
+<p>Add <code>@EnablePrometheusMetrics</code> to your configuration.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span class="annotation">@SpringBootApplication</span>
-<span class="annotation">@EnableMetrics</span>
-<span class="annotation">@EnablePrometheusScraping</span>
+<span class="annotation">@EnablePrometheusMetrics</span>
 <span class="directive">public</span> <span class="type">class</span> <span class="class">MyApp</span> {
-    <span class="annotation">@Bean</span>
-    <span class="directive">public</span> MeterRegistry prometheusRegistry() {
-        <span class="keyword">return</span> <span class="keyword">new</span> PrometheusRegistry()
-            .bind(<span class="keyword">new</span> JvmGcMetrics())
-            .bind(<span class="keyword">new</span> ProcessorMetrics());
-    }
 }
 
-Then inject <span class="error">`</span>MeterRegistry<span class="error">`</span> wherever you need to create a timer, gauge, counter, or summary.
+Then inject <span class="error">`</span>MeterRegistry<span class="error">`</span> wherever you need to create a timer, gauge, counter, or summary. Where supported,
+you may also use the <span class="error">`</span><span class="annotation">@Timed</span><span class="error">`</span> annotation, which eliminates the need to inject a <span class="error">`</span>MeterRegistry<span class="error">`</span> in certain
+cases.
 
 === Pulling metrics with scraping
 
-Adding <span class="error">`</span><span class="annotation">@EnablePrometheusScraping</span><span class="error">`</span> to your <span class="predefined-type">Spring</span> Boot application enables
-a <span class="predefined-type">Spring</span> Boot Actuator endpoint at <span class="error">`</span>/prometheus<span class="error">`</span> that presents a Prometheus
-scrape with the appropriate format <span class="keyword">for</span> a Prometheus scrape.
+<span class="error">`</span><span class="annotation">@EnablePrometheusMetrics</span><span class="error">`</span> also applies <span class="error">`</span><span class="annotation">@EnablePrometheusScraping</span><span class="error">`</span> to your <span class="predefined-type">Spring</span> Boot application which
+enables a <span class="predefined-type">Spring</span> Boot Actuator endpoint at <span class="error">`</span>/prometheus<span class="error">`</span> that presents a Prometheus
+scrape with the appropriate format.
 
 Here is an example <span class="error">`</span>scrape_config<span class="error">`</span> to add to prometheus.yml:
 
