@@ -1202,8 +1202,9 @@ separate metric name, and can be stacked with a short task timer.</p>
 <code>spring.metrics.web.server_requests.name</code>.</p>
 </div>
 <div class="paragraph">
-<p>The <code>Timer</code> contains a set of dimensions for every request, governed by the primary bean <code>WebMetricsTagProvider</code> registered
-in your application context. If you don&#8217;t provide such a bean, a default implementation is selected which adds the following dimensions:</p>
+<p>The <code>Timer</code> contains a set of dimensions for every request, governed by the primary bean <code>WebfluxTagConfigurer</code> or
+<code>WebmvcTagConfigurer</code> (depending on which programming model you are using) registered in your application
+context. If you don&#8217;t provide such a bean, a default implementation is selected which adds the following dimensions:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1222,7 +1223,7 @@ in your application context. If you don&#8217;t provide such a bean, a default i
 </ol>
 </div>
 <div class="paragraph">
-<p>In addition to the tags provided by your <code>WebMetricsTagProvider</code>, you can add fixed tags to individual
+<p>In addition to the default tags provided, you can add fixed tags to individual
 controllers or request methods via the <code>extraTags</code> attribute on <code>@Timed</code>:</p>
 </div>
 <div class="listingblock">
