@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.metrics.instrument.Counter;
 import org.springframework.metrics.instrument.MeterRegistry;
 import org.springframework.metrics.instrument.simple.SimpleMeterRegistry;
-import org.springframework.test.context.junit.jupiter.DisabledIf;
+//import org.springframework.test.context.junit.jupiter.DisabledIf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;

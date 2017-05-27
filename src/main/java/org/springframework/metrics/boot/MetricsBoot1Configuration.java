@@ -31,8 +31,11 @@ import org.springframework.web.client.RestTemplate;
  * @author Jon Schneider
  */
 @Configuration
-@ConditionalOnMissingClass("org.springframework.web.server.WebFilter") // TODO got to be a better way...
-@Import({ InstrumentRestTemplateConfiguration.class, RecommendedMeterBinders.class })
+//@ConditionalOnMissingClass("org.springframework.web.server.WebFilter") // TODO got to be a better way...
+@Import({ 
+		InstrumentServletRequestConfiguration.class,
+		InstrumentRestTemplateConfiguration.class,
+		RecommendedMeterBinders.class })
 class MetricsBoot1Configuration {
     @Bean
     @ConditionalOnMissingBean(TagFormatter.class)

@@ -16,6 +16,7 @@
 package org.springframework.metrics.boot;
 
 import org.springframework.context.annotation.Import;
+import org.springframework.metrics.boot.MetricsBoot1Configuration;
 
 import java.lang.annotation.*;
 
@@ -26,7 +27,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Import({ MetricsConfiguration.class, MetricsBoot1Configuration.class })
+//@Import({ MetricsConfiguration.class, MetricsBoot1Configuration.class })
+@Import({MetricsBoot1Configuration.class })
 public @interface EnableMetrics {
 }
 

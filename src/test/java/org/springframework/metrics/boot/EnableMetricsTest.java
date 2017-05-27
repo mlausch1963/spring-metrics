@@ -18,13 +18,17 @@ package org.springframework.metrics.boot;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -36,8 +40,11 @@ import org.springframework.metrics.instrument.binder.LogbackMetrics;
 import org.springframework.metrics.instrument.binder.MeterBinder;
 import org.springframework.metrics.instrument.simple.SimpleMeterRegistry;
 import org.springframework.metrics.instrument.web.RestTemplateTagConfigurer;
-import org.springframework.metrics.instrument.web.MetricsWebFilter;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+//import org.springframework.metrics.instrument.web.MetricsWebFilter;
+//import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,6 +54,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.ExpectedCount.once;
@@ -54,7 +62,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class EnableMetricsTest {
     @Autowired
@@ -74,6 +82,7 @@ class EnableMetricsTest {
         registry.clear();
     }
 
+/*    
     @Test
     void restTemplateIsInstrumented() {
         MockRestServiceServer server = MockRestServiceServer.bindTo(external).build();
@@ -97,7 +106,7 @@ class EnableMetricsTest {
                 .containsInstanceOf(Timer.class)
                 .hasValueSatisfying(t -> assertThat(t.count()).isEqualTo(1));
     }
-
+*/
     @Test
     void automaticallyRegisteredBinders() {
         assertThat(context.getBeansOfType(MeterBinder.class).values())
@@ -105,8 +114,21 @@ class EnableMetricsTest {
                 .hasAtLeastOneElementOfType(JvmMemoryMetrics.class);
     }
 
-    @SpringBootApplication
-    @EnableMetrics
+    @Bean
+    public EmbeddedServletContainerFactory servletContainer() {
+        TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory();
+        factory.setPort(9000);
+        factory.setSessionTimeout(10, TimeUnit.MINUTES);
+        //factory.addErrorPages(new ErrorPage(HttpStatus.404, "/notfound.html"));
+        return factory;
+    }
+    
+    
+//    @SpringBootApplication
+//    @EnableMetrics
+//    @Import(PersonController.class)
+    @RunWith(SpringRunner.class)
+    @SpringBootTest
     @Import(PersonController.class)
     static class MetricsApp {
         public static void main(String[] args) {
