@@ -31,13 +31,13 @@ import org.springframework.metrics.instrument.simple.SimpleMeterRegistry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+//import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
 @SpringBootTest
 class MetricsSchedulingAspectTest {
 

@@ -24,11 +24,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.metrics.instrument.MeterRegistry;
 import org.springframework.metrics.instrument.TagFormatter;
 import org.springframework.metrics.instrument.spectator.SpectatorMeterRegistry;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+//import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
 @SpringBootTest
 class EnableAtlasMetricsTest {
 
@@ -48,6 +48,6 @@ class EnableAtlasMetricsTest {
     }
 
     @SpringBootApplication
-    @EnableAtlasMetrics
+//    @EnableAtlasMetrics
     static class PrometheusApp {}
 }

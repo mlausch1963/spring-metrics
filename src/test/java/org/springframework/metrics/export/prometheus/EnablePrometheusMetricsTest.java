@@ -24,11 +24,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.metrics.instrument.MeterRegistry;
 import org.springframework.metrics.instrument.TagFormatter;
 import org.springframework.metrics.instrument.prometheus.PrometheusMeterRegistry;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+//import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
 @SpringBootTest
 class EnablePrometheusMetricsTest {
 
