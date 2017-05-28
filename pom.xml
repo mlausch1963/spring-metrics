@@ -133,6 +133,7 @@
     		</exclusions>
     		<scope>test</scope>
 		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/com.netflix.spectator/spectator-api -->
 		<dependency>
     		<groupId>com.netflix.spectator</groupId>
@@ -147,20 +148,6 @@
     		<version>5.0.0-M4</version>
 		</dependency>
 		
-		<!-- https://mvnrepository.com/artifact/io.prometheus/client -->
-		<!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient -->
-		<dependency>
-    		<groupId>io.prometheus</groupId>
-    		<artifactId>simpleclient</artifactId>
-    		<version>0.0.21</version>
-		</dependency>
-		
-		<!-- https://mvnrepository.com/artifact/io.prometheus/simpleclient_servlet -->
-		<dependency>
-    		<groupId>io.prometheus</groupId>
-    		<artifactId>simpleclient_servlet</artifactId>
-    		<version>0.0.21</version>
-		</dependency>
 		
 		<!-- https://mvnrepository.com/artifact/org.springframework/spring-web -->
 		<dependency>
@@ -189,6 +176,18 @@
 			<exclusions> <exclusion> <groupId>log4j</groupId> <artifactId>log4j</artifactId>
 			</exclusion> <exclusion> <groupId>commons-logging</groupId> <artifactId>commons-logging</artifactId>
 			</exclusion> </exclusions> </dependency> -->
+
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient</artifactId>
+			<version>0.0.21</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_pushgateway</artifactId>
+			<version>0.0.21</version>
+		</dependency>
 		
 	</dependencies>
 <!-- <build>
