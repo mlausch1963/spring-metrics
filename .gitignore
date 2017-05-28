@@ -3,3 +3,6 @@ build/
 third_party/
 gradle.properties
 /target/
+/.settings/
+/.classpath
+/.project
