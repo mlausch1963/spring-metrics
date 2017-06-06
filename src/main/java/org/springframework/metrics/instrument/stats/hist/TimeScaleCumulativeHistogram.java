@@ -20,7 +20,7 @@ import org.springframework.metrics.instrument.internal.TimeUtils;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
+ 
 /**
  * A cumulative histogram whose bucket tag values represent a measure of time. This class preserves the dimension of this
  * time so that the histogram's bucket tags can be scaled to the base unit of time that the monitoring backend expects.
@@ -43,13 +43,13 @@ public class TimeScaleCumulativeHistogram extends CumulativeHistogram<Double> {
     public TimeScaleCumulativeHistogram shiftScale(TimeUnit shift) {
         if(shift.equals(timeScale))
             return this;
-        return new TimeScaleCumulativeHistogram(new ScaledCumulativeBucketFunction(shift), shift);
+        return new TimeScaleCumulativeHistogram(new ScaledCumulativeBucketFunction(timeScale, shift), shift);
     }
 
     class ScaledCumulativeBucketFunction extends FixedCumulativeBucketFunction<Double> {
-        ScaledCumulativeBucketFunction(TimeUnit shift) {
-            super(d -> d, f.buckets().stream().map(d -> TimeUtils.convert(d, timeScale, shift))
-                    .collect(Collectors.toSet()), f.bucketComparator());
+        ScaledCumulativeBucketFunction(TimeUnit timeScale, TimeUnit shift) {      	
+            super(d -> d, f.buckets().stream().map(d -> TimeUtils.convert(d, timeScale, shift)) 
+            		.collect(Collectors.toSet()), f.bucketComparator());
         }
     }
 }
